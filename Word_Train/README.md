@@ -17,7 +17,7 @@ Player 1: "e", current string is "apple," which is a word, so Player 1 wins
 \
 Player 1: "a", current string is "a"\
 Player 2: "p", current string is "ap"\
-Player 1: "x", current string is "apx," which cannot spell an English word, so Player 2 wins\
+Player 1: "x", current string is "apx," which cannot spell an English word, so Player 2 wins
 \
 \
 Player 1: "x", current string is "x"\
