@@ -2,11 +2,11 @@
 
 The code in this directory is all related in one way or another to the game Word Train.
 
-# Game Description
+## Game Description
 
 When I was young, I had a handheld electronic dictionary with a variety of simple games. One of these was called Word Train. The game works like this: Players alternate taking turns to contribute one letter to a string. The first player who finishes spelling a valid word (usually at least four letters long to avoid trivial cases) wins. Alternatively, the first player to add a letter for which no valid word of sufficient length can be spelled loses.
 
-## Examples:
+### Examples:
 
 Player 1: "a", current string is "a"
 Player 2: "p", current string is "ap"
