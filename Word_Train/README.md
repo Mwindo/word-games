@@ -8,16 +8,18 @@ When I was young, I had a handheld electronic dictionary with a variety of simpl
 
 ### Examples:
 
-Player 1: "a", current string is "a"
-Player 2: "p", current string is "ap"
-Player 1: "p", current string is "app"
-Player 2: "l", current string is "appl"
+Player 1: "a", current string is "a"\
+Player 2: "p", current string is "ap"\
+Player 1: "p", current string is "app"\
+Player 2: "l", current string is "appl"\
 Player 1: "e", current string is "apple," which is a word, so Player 1 wins
-
-Player 1: "a", current string is "a"
-Player 2: "p", current string is "ap"
-Player 1: "x", current string is "apx," which cannot spell an English word, so Player 2 wins
-
-Player 1: "x", current string is "x"
+\
+\
+Player 1: "a", current string is "a"\
+Player 2: "p", current string is "ap"\
+Player 1: "x", current string is "apx," which cannot spell an English word, so Player 2 wins\
+\
+\
+Player 1: "x", current string is "x"\
 Player 2: "i", current string is "xi", which is only a prefix for "xi" or "xis" (according to the arbitrary dicionary I am using for this contrived example), neither of which is > 4 letters, so Player 1 wins
 
