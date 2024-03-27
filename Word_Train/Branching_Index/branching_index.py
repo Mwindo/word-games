@@ -30,16 +30,16 @@ class Trie:
         current.is_leaf = True
 
 
-class LanguageDictionary:
+class LanguageLexicon:
     """
-    A utility class for loading words from a given dictionary
+    A utility class for loading words from a given lexicon
     into different data structures for use by other objects.
     """
 
     def __init__(self, words_or_path_to_words: str | Iterable[str]) -> None:
         """
-        :param words_or_path_to_words: a str representing the path to a dictionary
-        or else an iterable of words (for ad hoc dictionaries)
+        :param words_or_path_to_words: a str representing the path to a lexicon
+        or else an iterable of words (for ad hoc lexicons)
         """
         self._trie: Trie | None = None
         self._words = set()
@@ -52,9 +52,9 @@ class LanguageDictionary:
 
     def __str__(self) -> str:
         if self._path_to_words:
-            return f"LanguageDictionary for {self._path_to_words}"
+            return f"LanguageLexicon for {self._path_to_words}"
         else:
-            return f"LanguageDictionary for unknown dictionary with {len(self.words)} words"
+            return f"LanguageLexicon for unknown lexicon with {len(self.words)} words"
 
     def get_words_from_file(self, filename: str, to_lower: bool = True) -> list[str]:
         words = set()
@@ -94,37 +94,37 @@ class LanguageDictionary:
         return self._words
 
 
-class DictionaryIndex(abc.ABC):
+class LexiconIndex(abc.ABC):
 
-    def __init__(self, dictionary: LanguageDictionary) -> None:
-        self.dictionary = dictionary
+    def __init__(self, lexicon: LanguageLexicon) -> None:
+        self.lexicon = lexicon
 
     def calculate(self) -> float:
         raise NotImplementedError()
 
 
-# Define a type variable that is bound to DictionaryIndex.
-DictionaryIndexType = TypeVar("DictionaryIndexType", bound=DictionaryIndex)
+# Define a type variable that is bound to LexiconIndex.
+LexiconIndexType = TypeVar("LexiconIndexType", bound=LexiconIndex)
 
 
-class DictionaryTrieIndex(DictionaryIndex):
+class LexiconTrieIndex(LexiconIndex):
     """
     An abstract class for calculating properties of a
-    dictionary of words based on prefixes.
+    lexicon of words based on prefixes.
     """
 
-    def __init__(self, dictionary: LanguageDictionary) -> None:
-        super().__init__(dictionary)
-        self.trie = self.dictionary.trie
+    def __init__(self, lexicon: LanguageLexicon) -> None:
+        super().__init__(lexicon)
+        self.trie = self.lexicon.trie
 
 
-class BinaryBranchingIndex(DictionaryTrieIndex):
+class BinaryBranchingIndex(LexiconTrieIndex):
     """
     A class to calculate the "binary branching index," a measure
-    of how often a given prefix string in a dictionary has more than one
+    of how often a given prefix string in a lexicon has more than one
     option for the following position (including '').
 
-    For example, given the following dictionary:
+    For example, given the following lexicon:
     a
     apple
     There are 6 prefixes: '', 'a', 'ap', 'app', 'appl', 'apple'
@@ -149,13 +149,13 @@ class BinaryBranchingIndex(DictionaryTrieIndex):
         return binary_branchings / total_prefixes if total_prefixes else 0
 
 
-class TotalBranchingIndex(DictionaryTrieIndex):
+class TotalBranchingIndex(LexiconTrieIndex):
     """
     A class to calculate the "total branching index," a measure
     of how many degrees of freedom, on average, a prefix string in
-    a dictionary has for the following position (including '').
+    a lexicon has for the following position (including '').
 
-    For example, given the following dictionary:
+    For example, given the following lexicon:
     a
     apple
     b
@@ -187,7 +187,7 @@ class TotalBranchingIndex(DictionaryTrieIndex):
         return total_branchings / total_prefixes if total_prefixes else 0
 
 
-class FakeDictionaryMaker:
+class FakeLexiconMaker:
     """
     A hokey class for generating "fake" dictionaries, i.e.,
     lists of words for testing.
@@ -203,7 +203,7 @@ class FakeDictionaryMaker:
 
     def build_uniformly_random(self):
         """
-        Build a random dictionary given simple constraints.
+        Build a random lexicon given simple constraints.
         This does not account for duplicate strings.
         """
         letters = [letter for letter in "abcdefghijklmnopqrstuvwxyz"]
@@ -215,41 +215,41 @@ class FakeDictionaryMaker:
             file.writelines(lines)
 
 
-class DictionaryIndexCalculator:
+class LexiconIndexCalculator:
 
     @dataclasses.dataclass
-    class DictionaryIndexResult:
+    class LexiconIndexResult:
         index: float
         index_variance: float
         index_standard_deviation: float
 
-    def __init__(self, index: type[DictionaryIndexType]) -> None:
+    def __init__(self, index: type[LexiconIndexType]) -> None:
         self.index = index
 
-    def calculate_index(self, dictionary: LanguageDictionary) -> DictionaryIndexResult:
-        return DictionaryIndexCalculator.DictionaryIndexResult(
-            self.index(dictionary).calculate(), 0, 0
+    def calculate_index(self, lexicon: LanguageLexicon) -> LexiconIndexResult:
+        return LexiconIndexCalculator.LexiconIndexResult(
+            self.index(lexicon).calculate(), 0, 0
         )
 
     def calculate_index_from_samples(
-        self, dictionary: LanguageDictionary, num_samples: int, sample_size: int | float
+        self, lexicon: LanguageLexicon, num_samples: int, sample_size: int | float
     ):
         if isinstance(sample_size, float):
             if sample_size <= 0 or sample_size >= 1:
                 raise Exception("expected 0 < sample_size (float) < 1")
-            sample_size = int(sample_size * len(dictionary.words))
-        return self._calculate_index_from_samples(dictionary, num_samples, sample_size)
+            sample_size = int(sample_size * len(lexicon.words))
+        return self._calculate_index_from_samples(lexicon, num_samples, sample_size)
 
     def _calculate_index_from_samples(
-        self, dictionary: LanguageDictionary, num_samples: int, sample_size: int
-    ) -> DictionaryIndexResult:
-        if len(dictionary.words) <= sample_size:
-            raise Exception(f"sample_size is too high for {dictionary}")
+        self, lexicon: LanguageLexicon, num_samples: int, sample_size: int
+    ) -> LexiconIndexResult:
+        if len(lexicon.words) <= sample_size:
+            raise Exception(f"sample_size is too high for {lexicon}")
         total = 0
         indices = [0] * num_samples
         for i in range(num_samples):
-            words = random.sample(list(dictionary.words), sample_size)
-            custom_dict = LanguageDictionary(words)
+            words = random.sample(list(lexicon.words), sample_size)
+            custom_dict = LanguageLexicon(words)
             index = self.index(custom_dict).calculate()
             indices[i] = index
             total += index
@@ -257,9 +257,8 @@ class DictionaryIndexCalculator:
         variance = (
             sum([(sample_index - mean) ** 2 for sample_index in indices]) / num_samples
         )
-        return DictionaryIndexCalculator.DictionaryIndexResult(
-            mean, variance, variance**0.5
-        )
+        return LexiconIndexCalculator.LexiconIndexResult(mean, variance, variance**0.5)
+
 
 if __name__ == "__main__":
     for language in [
@@ -281,9 +280,9 @@ if __name__ == "__main__":
     ]:
         print(f"===={language}====")
         dict_path = f"./dictionaries/d_{language}.txt"
-        ld = LanguageDictionary(dict_path)
-        bb = DictionaryIndexCalculator(BinaryBranchingIndex)
-        tb = DictionaryIndexCalculator(TotalBranchingIndex)
+        ld = LanguageLexicon(dict_path)
+        bb = LexiconIndexCalculator(BinaryBranchingIndex)
+        tb = LexiconIndexCalculator(TotalBranchingIndex)
         binary_index = bb.calculate_index(ld)
         # binary_subset_index = bb.calculate_index_from_samples(ld, 100, 0.2)
         total_index = tb.calculate_index(ld)
@@ -304,5 +303,5 @@ if __name__ == "__main__":
             # total_subset_index.index_standard_deviation,
         )
 
-# faker = FakeDictionaryMaker('random_2000000_25', 2000000)
+# faker = FakeLexiconMaker('random_2000000_25', 2000000)
 # faker.build()
