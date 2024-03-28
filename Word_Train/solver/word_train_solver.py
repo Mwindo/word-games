@@ -61,7 +61,9 @@ class WordTrainSolver:
         for word in all_words:
             if len(word) < min_word_length:
                 continue
-            next_letter_option = word[len(prefix)]  # TODO: handle error
+            next_letter_option = (
+                word[len(prefix)] if len(prefix) < len(word) else word[0]
+            )  # TODO: handle error
             if (
                 len(word) - len(prefix)
             ) % num_players == 1:  # This word happens on the current player's turn
@@ -73,9 +75,9 @@ class WordTrainSolver:
                 )
                 losing_words[next_letter_option].add(word)
         # We create lexicons so we can use tries for more efficient lookups
-        winning_words_lexicon = LanguageLexicon(winning_words)
+        winning_words_lexicon = LanguageLexicon(winning_words or [])
         losing_words_lexicon = LanguageLexicon(
-            itertools.chain.from_iterable(losing_words.values())
+            itertools.chain.from_iterable(losing_words.values()) or []
         )
         # We start our search for solutions by looking at all of the next letters
         # that can lead to a winning word (note that there is no guarantee that we can

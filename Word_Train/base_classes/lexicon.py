@@ -97,7 +97,9 @@ class LanguageLexicon:
             raise Exception("trie already loaded!")
 
         self._trie = Trie()
-        words = self._words or self.get_words_from_file(self._path_to_words)
+        words = self._words
+        if not words and self._path_to_words:
+            words = self.get_words_from_file(self._path_to_words)
         for word in words:
             self._trie.insert(word)
 
