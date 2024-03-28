@@ -8,8 +8,8 @@ class TrieNode:
     """
 
     def __init__(self) -> None:
-        self.children = dict()
-        self.is_leaf = False
+        self.children: dict[str, TrieNode] = dict()
+        self.is_leaf: bool = False
 
 
 class Trie:
@@ -26,6 +26,28 @@ class Trie:
             current.children[letter] = current.children.get(letter, TrieNode())
             current = current.children[letter]
         current.is_leaf = True
+
+    def get_prefix_node(self, prefix: str) -> TrieNode | None:
+        current = self.root
+        for letter in prefix:
+            if letter not in current.children:
+                return None
+            current = current.children[letter]
+        return current
+
+    def get_all_words(self, prefix: str) -> list[str]:
+        node = self.get_prefix_node(prefix)
+        if not node:
+            return []
+        nodes = [(node, prefix)]
+        words = []
+        while nodes:
+            node, prefix = nodes.pop()
+            if node.is_leaf:
+                words.append(prefix)
+            for letter in node.children:
+                nodes.append((node.children[letter], prefix + letter))
+        return words
 
 
 class LanguageLexicon:

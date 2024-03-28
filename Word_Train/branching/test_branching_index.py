@@ -1,7 +1,9 @@
-from base_classes.lexicon import (
-    LanguageLexicon
+from base_classes.lexicon import LanguageLexicon
+from branching.branching_index import (
+    LexiconIndexCalculator,
+    BinaryBranchingIndex,
+    TotalBranchingIndex,
 )
-from branching.branching_index import LexiconIndexCalculator, BinaryBranchingIndex, TotalBranchingIndex
 
 
 def get_lexicon_path(lexicon_name: str) -> str:
