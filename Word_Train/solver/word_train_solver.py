@@ -1,14 +1,30 @@
 from base_classes.lexicon import LanguageLexicon
+import dataclasses
 
 
 class WordTrainSolver:
+
+    @dataclasses.dataclass
+    class WordTrainSolution:
+        prefix: str
+        certain_wins: list[str]  # Wins that are guaranteed with perfect play
+        possible_wins: list[str]  # Wins that rely on how the other players play
+
+        def __str__(self):
+            return (
+                f"certain wins for {self.prefix}:\n{self.certain_wins}\n"
+                f"possible wins for {self.prefix}:\n{self.possible_wins}"
+            )
 
     def __init__(self, lexicon: LanguageLexicon) -> None:
         self.lexicon = lexicon
 
     # TODO: I believe this function "works"
     # But it's terrible, so let's improve it
-    def solve(self, prefix: str, num_players: int, min_length: int = 4) -> list[str]:
+    # TODO: implement "possible wins"
+    def solve(
+        self, prefix: str, num_players: int, min_word_length: int = 4
+    ) -> WordTrainSolution:
         """
         Given the current prefix, solve returns a list of possible next letters that a player
         could play such that, if they play perfectly, they are guaranteed a win.
@@ -25,7 +41,7 @@ class WordTrainSolver:
             [
                 word
                 for word in all_words
-                if len(word) >= min_length
+                if len(word) >= min_word_length
                 and (len(word) - len(prefix)) % num_players == 1
             ]
         )
@@ -34,7 +50,7 @@ class WordTrainSolver:
             [
                 word
                 for word in all_words
-                if len(word) >= min_length
+                if len(word) >= min_word_length
                 and (len(word) - len(prefix)) % num_players != 1
             ]
         )
@@ -46,20 +62,21 @@ class WordTrainSolver:
         # get to this word, e.g., plant will come before plants even if plants is
         # "winning" word for us).
         possible_next_letters = set([word[len(prefix)] for word in winning_words])
-        next_letter_solutions = set()
+        certain_wins = set()
+        possible_wins = set()
         for possible_next_letter in possible_next_letters:
             possible_prefix = prefix + possible_next_letter
             # If the new prefix is a winning word, we are done.
             if possible_prefix in winning_words:
-                next_letter_solutions.add(possible_next_letter)
+                certain_wins.add(possible_next_letter)
             # If the new prefix isn't a prefix of any losing word,
             # then we are guaranteed to reach a winning word, and we are done.
             elif not losing_words_lexicon.trie.get_prefix_node(possible_prefix):
-                next_letter_solutions.add(possible_next_letter)
+                certain_wins.add(possible_next_letter)
             else:
                 # Now things get more complex
                 # Tentatively add the solution. (TODO: There is almost certainly a better way.)
-                next_letter_solutions.add(possible_next_letter)
+                certain_wins.add(possible_next_letter)
                 # Get all of the losing words that start with the new prefix
                 possible_losing_words = [
                     word
@@ -97,38 +114,45 @@ class WordTrainSolver:
                         if not found:
                             # We didn't find a winning word we can get to before the losing word,
                             # so possible_next_letter is not a guaranteed win for the current player.
-                            next_letter_solutions.remove(possible_next_letter)
+                            certain_wins.remove(possible_next_letter)
                             break
-                    if possible_next_letter not in next_letter_solutions:
+                    if possible_next_letter not in certain_wins:
                         # We've already eliminated possible_next_letter, so no need to keep
                         # checking
                         break
+        # TODO: Make this more efficient
+        possible_wins = (
+            set(
+                [
+                    word[len(prefix)]
+                    for word in winning_words
+                    if all(not word.startswith(w) for w in losing_words)
+                ]
+            )
+            - certain_wins
+        )
 
-        return list(next_letter_solutions)
+        return WordTrainSolver.WordTrainSolution(
+            prefix, list(sorted(certain_wins)), list(sorted(possible_wins))
+        )
 
 
 if __name__ == "__main__":
     print(
-        "\n",
-        WordTrainSolver(LanguageLexicon("./lexicons/english.txt")).solve("appl", 3),
+        WordTrainSolver(LanguageLexicon("./lexicons/english.txt")).solve("appl", 2),
     )  # a e y -- I think
     print(
-        "\n",
-        WordTrainSolver(LanguageLexicon("./lexicons/english.txt")).solve("appli", 3),
+        WordTrainSolver(LanguageLexicon("./lexicons/english.txt")).solve("appli", 2),
     )  # q -- I think
     print(
-        "\n",
-        WordTrainSolver(LanguageLexicon("./lexicons/english.txt")).solve("applic", 3),
+        WordTrainSolver(LanguageLexicon("./lexicons/english.txt")).solve("applic", 2),
     )  # none
     print(
-        "\n",
-        WordTrainSolver(LanguageLexicon("./lexicons/english.txt")).solve("ap", 3),
+        WordTrainSolver(LanguageLexicon("./lexicons/english.txt")).solve("ap", 2),
     )  # ['n', 'j', 'y', 'r'] -- I think
     print(
-        "\n",
-        WordTrainSolver(LanguageLexicon("./lexicons/english.txt")).solve("a", 3),
+        WordTrainSolver(LanguageLexicon("./lexicons/english.txt")).solve("a", 2),
     )  # ['q', 'v'] -- I think
-    print(
-        "\n",
-        WordTrainSolver(LanguageLexicon("./lexicons/english.txt")).solve("", 3),
-    )  # none
+    # print(
+    #     WordTrainSolver(LanguageLexicon("./lexicons/english.txt")).solve("", 2),
+    # )  # none
