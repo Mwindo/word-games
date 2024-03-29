@@ -7,7 +7,7 @@ from solver.word_train_solver import WordTrainSolver
 MINIMUM_WORD_LENGTH = 4
 
 
-# The was all coded in like fifteen minutes, so it is awful and needs refactoring
+# This was all coded in like fifteen minutes, so it is awful and needs refactoring
 # I just wanted to spin it up quickly since all of the pieces were in place already
 def game_loop(
     lexicon: LanguageLexicon,
