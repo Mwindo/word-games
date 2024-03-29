@@ -38,8 +38,7 @@ class WordTrainSolver:
     ) -> tuple[list[str], list[str]]:
         pass
 
-    # TODO: I believe this function "works"
-    # But it's terrible, so let's improve it
+    # TODO: Refactor
     def solve(
         self, prefix: str, num_players: int, min_word_length: int = 4
     ) -> WordTrainSolution:
