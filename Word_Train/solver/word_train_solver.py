@@ -44,14 +44,20 @@ class WordTrainSolver:
         self, prefix: str, num_players: int, min_word_length: int = 4
     ) -> WordTrainSolution:
         """
-        Given the current prefix, solve returns a list of possible next letters that a player
-        could play such that, if they play perfectly, they are guaranteed a win.
-        If no such letters exist, solve returns an empty list.
+        Given the current prefix, solve returns a WordTrainSolution instance with
+        (possibly empty) lists of letters certain_wins and possible_wins.
+        certain_wins are letters that, should the player play perfectly,
+        guarantee a win. possible_wins are letters that can lead to a win, but which
+        depend on other players' choices.
 
-        Example:
-        solve('appl', 2, 4) --> [e, y, a] because 'apple' and 'apply' are automatic wins,
-        and the only 'appla' words are 'applause' and 'applausive...', each of which
-        is a winning word for the current player.
+        Example based on ./lexicons/english.txt:
+        solve('appl', 2, 4):
+        --> certain_wins ["e", "y", "a"] because "apple" and "apply"
+        are automatic wins, and the only "appla" words are "applause" and "applausive...",
+        each of which is a winning word for the current player.
+        --> possible_wins ["i", "o"] because (e.g.) "application" and "applosion"
+        would be winning words, but it depends on the other player not choosing letters
+        that would lead to the losing words "appicable" or "applot."
         """
 
         all_words = self.lexicon.trie.get_all_words(prefix)
