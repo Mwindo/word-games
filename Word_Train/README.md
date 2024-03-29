@@ -33,4 +33,4 @@ Run `python3 -m word_train` from this directory.
 
 ## Tests
 
-Run `python3 -m pytest` from this directory
+Run `python3 -m pytest` from this directory.

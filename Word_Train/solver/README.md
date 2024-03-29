@@ -21,4 +21,4 @@ Examples:
 ## TODO
 
 * Return not only the next-letter options, but also the words you can reach for them.
-* For possible wins, return the probabilities (assuming other players make random choices)
+* For possible wins, return the probabilities (assuming other players make random choices).
