@@ -1,7 +1,7 @@
 from base_classes.lexicon import LanguageLexicon
 from branching.branching_index import (
-    LexiconIndexCalculator,
     BinaryBranchingIndex,
+    LexiconIndexCalculator,
     TotalBranchingIndex,
 )
 

@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Iterable
+from typing import Iterable, TypeVar
 
 
 class TrieNode:
@@ -89,8 +89,8 @@ class LanguageLexicon:
     def load_words(self) -> None:
         if self._words:
             raise Exception("words already loaded!")
-
-        self._words = self.get_words_from_file(self._path_to_words)
+        if self._path_to_words:
+            self._words = self.get_words_from_file(self._path_to_words)
 
     def load_trie(self) -> None:
         if self._trie:

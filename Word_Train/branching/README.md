@@ -1,5 +1,27 @@
 # Branching Index
 
+## To Run
+
+From the /Word_Train diectory, run:
+
+`python3 -m branching.branching_index <path/to/lexicon.txt> -t <what indices> [-n <how many samples> [-s <sample size in percent (use float) or absolute (use int)>]]`
+
+Examples:
+
+Calculate the binary index over the entire English lexicon:
+`python3 -m branching.branching_index ./lexicons/english.txt -t b`
+
+Calculate the total index over the entire English lexicon:
+`python3 -m branching.branching_index ./lexicons/english.txt -t bt`
+
+Calculate the binary and total index over the English lexicon via 20 samples, with a sample size of 10000 words:
+`python3 -m branching.branching_index ./lexicons/english.txt -t bt -n 20 -s 10000`
+
+Calculate the binary and total index over the English lexicon via 20 samples, with a sample size of 1% of the words:
+`python3 -m branching.branching_index ./lexicons/english.txt -t bt -n 20 -s .01`
+
+## Description
+
 While thinking about Word Train, I wondered whether a type of [branching factor](https://en.wikipedia.org/wiki/Branching_factor) might be interesting or useful when applied to lexicons (and, by synecdoche, their parent languages). I called the idea the "branching index." Essentially, the questions I was playing around with were the following: How "fixed" or "determined" is any given prefix of words in some lexicon? How many branches, on average, exist for a given prefix in some lexicon? Would this index yield any interesting synchronic, cross-linguistic insights or diachronic, single-language insights? In other words, to what degree would this index constitute a useful property of a lexicon (and therefore language)?
 
 (I would not be surprised if there is interesting work on this topic. I haven't really investigated deeply; I  wanted to think through things myself first.)

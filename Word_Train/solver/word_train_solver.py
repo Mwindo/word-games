@@ -1,6 +1,8 @@
-from base_classes.lexicon import LanguageLexicon
+import argparse
 import dataclasses
 import itertools
+
+from base_classes.lexicon import LanguageLexicon
 
 
 class WordTrainSolver:
@@ -12,6 +14,7 @@ class WordTrainSolver:
         possible_wins: list[str]  # Wins that rely on how the other players play
         # certain_win_words: list[str]  # End words for the letters in certain_wins
         # possible_win_words: list[str]  # End words for the letters in possible_wins
+        # probabilities (given random choices) would be great too
 
         def __str__(self):
             return (
@@ -63,7 +66,7 @@ class WordTrainSolver:
                 continue
             next_letter_option = (
                 word[len(prefix)] if len(prefix) < len(word) else word[0]
-            )  # TODO: handle error
+            )
             if (
                 len(word) - len(prefix)
             ) % num_players == 1:  # This word happens on the current player's turn
@@ -104,37 +107,21 @@ class WordTrainSolver:
                 # we are considering is invalid: even if the player plays perfectly, they
                 # might end up at a losing word.
                 for losing_word in possible_losing_words:
-                    # For every possible losing word, we need to consider the prefixes
-                    # that can arise from any combination of player choices until the
-                    # current player's next choice.
-                    # (Why only these choices? Because we have shown that,
-                    # whatever the other players choose next, the current player can be
-                    # guaranteed a win--regardless of what happens later.)
-                    losing_prefixes = [
-                        losing_word[: len(next_letter_prefix) + i]
-                        for i in range(1, num_players)
+                    # Get the prefix for the word given the number of players.
+                    losing_prefix = losing_word[
+                        : len(next_letter_prefix) + num_players - 1
                     ]
-                    # For each of these losing prefixes, we need to check if we
-                    # can find a winning word that comes before the losing word.
+                    # We need to check if we can find a winning word that
+                    # comes before the losing word.
                     # Otherwise, there is a route to a non-winning word regardless
                     # of perfect play.
-                    for losing_prefix in losing_prefixes:
-                        found = False
+                    if not any(
+                        len(word) < len(losing_word)
                         for word in winning_words_lexicon.trie.get_all_words(
                             losing_prefix
-                        ):
-                            if len(word) < len(losing_word):
-                                # We've found a winning word we can get to before the losing word.
-                                found = True
-                                break
-                        if not found:
-                            # We didn't find a winning word we can get to before the losing word,
-                            # so possible_next_letter is not a guaranteed win for the current player.
-                            certain_wins.remove(next_letter_option)
-                            break
-                    if next_letter_option not in certain_wins:
-                        # We've already eliminated possible_next_letter, so no need to keep
-                        # checking
+                        )
+                    ):
+                        certain_wins.remove(next_letter_option)
                         break
         # TODO: Make this more efficient
         possible_wins = (
@@ -157,23 +144,34 @@ class WordTrainSolver:
 
 
 if __name__ == "__main__":
-    lexicon = LanguageLexicon("./lexicons/english.txt")
-    solver = WordTrainSolver(lexicon)
+    parser = argparse.ArgumentParser(
+        prog="Word Train Solver",
+        description="A solver for the game Word Train",
+    )
+    parser.add_argument(
+        "lexicon", help="Specify the file containing line-separated words"
+    )
+    parser.add_argument("-w", "--word", required=True, help="The current running word")
+    parser.add_argument(
+        "-n",
+        "--num_players",
+        required=False,
+        help="The number of players in the game",
+        default=2,
+    )
+    parser.add_argument(
+        "-m",
+        "--min_word_length",
+        required=False,
+        help="The minimum word length for a winning word",
+        default=4,
+    )
+    args = parser.parse_args()
+    print("\nLoading lexicon ... ")
+    lexicon = LanguageLexicon(args.lexicon)
+    print("\nSolving ...")
     print(
-        solver.solve("appl", 2),
-    )  # a e y -- I think
-    print(
-        solver.solve("appli", 2),
-    )  # q -- I think
-    print(
-        solver.solve("applic", 2),
-    )  # none
-    print(
-        solver.solve("ap", 2),
-    )  # ['n', 'j', 'y', 'r'] -- I think
-    print(
-        solver.solve("a", 2),
-    )  # ['q', 'v'] -- I think
-    # print(
-    #     WordTrainSolver(LanguageLexicon("./lexicons/english.txt")).solve("", 2),
-    # )  # none
+        WordTrainSolver(lexicon).solve(
+            args.word, int(args.num_players), int(args.min_word_length)
+        )
+    )

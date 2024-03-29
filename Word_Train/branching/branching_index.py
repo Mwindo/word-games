@@ -1,6 +1,8 @@
+import argparse
 import dataclasses
 import random
-from base_classes.lexicon import LexiconTrieIndex, LexiconIndexType, LanguageLexicon
+
+from base_classes.lexicon import LanguageLexicon, LexiconIndexType, LexiconTrieIndex
 
 
 class BinaryBranchingIndex(LexiconTrieIndex):
@@ -108,6 +110,13 @@ class LexiconIndexCalculator:
         index_variance: float
         index_standard_deviation: float
 
+        def __str__(self) -> str:
+            return (
+                f"index: {self.index} "
+                f"(variance: {self.index_variance}; "
+                f"standard deviation: {self.index_standard_deviation})"
+            )
+
     def __init__(self, index: type[LexiconIndexType]) -> None:
         self.index = index
 
@@ -146,47 +155,48 @@ class LexiconIndexCalculator:
 
 
 if __name__ == "__main__":
-    for language in [
-        # "english",
-        # "spanish",
-        # "french",
-        # "italian",
-        # "latin",
-        # "random_20_25",
-        # "random_200_25",
-        # "random_2000_25",
-        # "random_20000_25",
-        # "random_200000_25",
-        # "random_2000000_25",
-        "test_1",
-        "test_2",
-        "test_3",
-        "test_4",
-    ]:
-        print(f"===={language}====")
-        dict_path = f"./lexicons/{language}.txt"
-        ld = LanguageLexicon(dict_path)
-        bb = LexiconIndexCalculator(BinaryBranchingIndex)
-        tb = LexiconIndexCalculator(TotalBranchingIndex)
-        binary_index = bb.calculate_index(ld)
-        # binary_subset_index = bb.calculate_index_from_samples(ld, 100, 0.2)
-        total_index = tb.calculate_index(ld)
-        # total_subset_index = tb.calculate_index_from_samples(ld, 100, 0.2)
-        print(f"Binary Branching Index for {language}")
-        print(binary_index.index)
-        print(
-            # binary_subset_index.index,
-            # binary_subset_index.index_variance,
-            # binary_subset_index.index_standard_deviation,
-        )
-        print("--------")
-        print(f"Total Branching Index for {language}")
-        print(total_index.index)
-        print(
-            # total_subset_index.index,
-            # total_subset_index.index_variance,
-            # total_subset_index.index_standard_deviation,
-        )
-
-# faker = FakeLexiconMaker('random_2000000_25', 2000000)
-# faker.build()
+    parser = argparse.ArgumentParser(
+        prog="Branching Index Calculator",
+        description="Calculates branching indices for a lexicon",
+    )
+    parser.add_argument(
+        "lexicon", help="Specify the file containing line-separated words"
+    )
+    parser.add_argument(
+        "-t",
+        "--types",
+        required=True,
+        help="What types of indices to run: (b)inary, (t)otal",
+    )
+    parser.add_argument(
+        "-n",
+        "--num_samples",
+        help="Calculate the index via sampling with this number of samples",
+        default=None,
+    )
+    parser.add_argument(
+        "-s",
+        "--sample_size",
+        help="Specify the sample size to be used if num_samples is specified",
+        default=0.25,
+    )
+    args = parser.parse_args()
+    print("\nLoading lexicon ... ")
+    lexicon = LanguageLexicon(args.lexicon)
+    indices: list[tuple[str, LexiconIndexCalculator]] = []
+    if "b" in args.types:
+        indices.append(("binary", LexiconIndexCalculator(BinaryBranchingIndex)))
+    if "t" in args.types:
+        indices.append(("total", LexiconIndexCalculator(TotalBranchingIndex)))
+    print("\nSolving ...")
+    for index_name, calculator in indices:
+        if args.num_samples:
+            sample_size = float(args.sample_size)
+            if int(sample_size) == sample_size:
+                sample_size = int(sample_size)
+            index = calculator.calculate_index_from_samples(
+                lexicon, int(args.num_samples), sample_size
+            )
+            print(f"{index_name} {index}")
+        else:
+            print(f"{index_name} {calculator.calculate_index(lexicon)}")
