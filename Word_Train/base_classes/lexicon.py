@@ -105,15 +105,32 @@ class LanguageLexicon:
 
     @property
     def trie(self) -> Trie:
+        """
+        Returns all words in the lexicon as a prefix trie
+        """
         if not self._trie:
             self.load_trie()
         return self._trie
 
     @property
     def words(self) -> set:
+        """
+        Returns all words in the lexicon
+        """
         if not self._words:
             self.load_words()
         return self._words
+
+    @property
+    def characters(self) -> set:
+        """
+        Returns the character set for the words in the lexicon
+        """
+        all_characters = set()
+        for word in self.words:
+            for letter in word:
+                all_characters.add(letter)
+        return all_characters
 
 
 class LexiconIndex(abc.ABC):

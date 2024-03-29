@@ -23,6 +23,14 @@ Player 1: "x", current string is "apx," which cannot spell an English word, so P
 Player 1: "x", current string is "x"\
 Player 2: "i", current string is "xi", which is only a prefix for "xi" or "xis" (according to the arbitrary dicionary I am using for this contrived example), neither of which is > 4 letters, so Player 1 wins
 
+## Organization
+
+Shared data structures and code go in `./base_classes`. Lexicons (.txt files of line-separated words) go in `./lexicons`. Other modules are for random explorations based on Word Train that can make use of the base classes and lexicons.
+
+## To Play
+
+Run `python3 -m word_train` from this directory.
+
 ## Tests
 
 Run `python3 -m pytest` from this directory

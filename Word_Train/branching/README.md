@@ -36,3 +36,11 @@ Before doing any work, I considered some pathological examples and mathematical 
 * A lexicon consisting of "a," "aa," "aaa," "aaaa", ... (a+) would have a binary/total branching index of 1/(cardinality(lexicon)+1).
 * The branching index is a measure of information: how much information does a given prefix give us about what words might follow? A higher branching index means that words are, in some sense, "closer together": we have less information about how to predict a word based on a given prefix. A lower branching index means that words are, in some sense, "sparser": we have moe information about how to predict a word based on a given prefix.
 * The branching indices for a "uniformly randomly" (in quotes since this requires more explanation to be well-defined) constructed lexicon (given some alphabet) should be lower than the branching indices for a natural language lexicon since there are no morphological constraints on the random lexicon. In other words, we would expect more information from a prefix in a randomly generated language because the space should be sparser. (In English, we have "apply," "application," "applications", etc. In a "random" lexicon, it is unlikely we would have so many similar strings.)
+
+## Questions for investigation
+
+* Is the branching index at all "useful?" What sorts of languages have higher indices? What sorts of languages have high binary branching but low total branching, if any, and why?
+* How does the branching index evolve over time?
+* How well can a branching index distinguish between certain types of languages?
+* How well does the binary/total branching index correlate with the likelihood of being able to "solve" certain positions (i.e., prefixes) in Word Train?
+* Calculate the expected branching index for certain types of languages. Mathematically relate this to information and entropy.

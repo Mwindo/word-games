@@ -17,3 +17,8 @@ Examples:
 `python3 -m solver.word_train_solver ./lexicons/english.txt -w appl -n 3`
 
 `python3 -m solver.word_train_solver ./lexicons/english.txt -w appl -n 3 -m 8`
+
+## TODO
+
+* Return not only the next-letter options, but also the words you can reach for them.
+* For possible wins, return the probabilities (assuming other players make random choices)
