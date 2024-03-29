@@ -29,7 +29,9 @@ Shared data structures and code go in `./base_classes`. Lexicons (.txt files of 
 
 ## To Play
 
-Run `python3 -m word_train` from this directory.
+word_train.py has a very simple implementation of the game.
+
+Run `python3 -m word_train` from this directory. (This will use the default ./lexicons/english.txt lexicon, which is ... idiosyncratic. It has a lot of abstruse words and sometimes misses less obscure words, like "zeitgeist." To specify a different lexicon, add `-l path/to/file.txt`).
 
 ## Tests
 
