@@ -21,7 +21,7 @@ Player 1: "x", current string is "apx," which cannot spell an English word, so P
 \
 \
 Player 1: "x", current string is "x"\
-Player 2: "i", current string is "xi", which is only a prefix for "xi" or "xis" (according to the arbitrary dicionary I am using for this contrived example), neither of which is > 4 letters, so Player 1 wins
+Player 2: "i", current string is "xi", which is only a prefix for "xi" or "xis" (according to the arbitrary dictionary I am using for this contrived example), neither of which is > 4 letters, so Player 1 wins
 
 ## Organization
 
