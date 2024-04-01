@@ -1,5 +1,6 @@
 import abc
 from typing import Iterable, TypeVar
+import functools
 
 
 class TrieNode:
@@ -35,16 +36,20 @@ class Trie:
             current = current.children[letter]
         return current
 
-    def get_all_words(self, prefix: str) -> list[str]:
+    def get_all_words(
+        self, prefix: str, stop_at_leaf: bool = False, min_length: int = 0
+    ) -> list[str]:
         node = self.get_prefix_node(prefix)
-        if not node:
-            return []
-        nodes = [(node, prefix)]
         words = []
+        if not node:
+            return words
+        nodes = [(node, prefix)]
         while nodes:
             node, prefix = nodes.pop()
-            if node.is_leaf:
+            if node.is_leaf and len(prefix) >= min_length:
                 words.append(prefix)
+                if stop_at_leaf:
+                    continue
             for letter in node.children:
                 nodes.append((node.children[letter], prefix + letter))
         return words
@@ -122,6 +127,7 @@ class LanguageLexicon:
         return self._words
 
     @property
+    @functools.cache
     def characters(self) -> set:
         """
         Returns the character set for the words in the lexicon

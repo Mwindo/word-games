@@ -1,26 +1,13 @@
 import argparse
-import dataclasses
-import itertools
+from dataclasses import dataclass, field
 
-from base_classes.lexicon import LanguageLexicon
+from base_classes.lexicon import LanguageLexicon, TrieNode
+
+
+DEFAULT_MINIMUM_WORD_LENGTH = 4
 
 
 class WordTrainSolver:
-
-    @dataclasses.dataclass
-    class WordTrainSolution:
-        prefix: str
-        certain_wins: list[str]  # Wins that are guaranteed with perfect play
-        possible_wins: list[str]  # Wins that rely on how the other players play
-        # certain_win_words: list[str]  # End words for the letters in certain_wins
-        # possible_win_words: list[str]  # End words for the letters in possible_wins
-        # probabilities (given random choices) would be great too
-
-        def __str__(self):
-            return (
-                f"certain wins for {self.prefix}:\n{self.certain_wins}\n"
-                f"possible wins for {self.prefix}:\n{self.possible_wins}"
-            )
 
     def __init__(
         self,
@@ -28,123 +15,144 @@ class WordTrainSolver:
     ) -> None:
         self.lexicon = lexicon
 
-    def _get_certain_wins(
-        self, prefix: str, num_players: int, min_word_length: int = 4
-    ) -> tuple[list[str], list[str]]:
-        pass
+    @dataclass
+    class WordTrainSolution:
+        """
+        The class corresponding to the return value of solve.
+        """
 
-    def _get_possible_wins(
-        self, prefix: str, num_players: int, min_word_length: int = 4
-    ) -> tuple[list[str], list[str]]:
-        pass
+        # Words that occur on the player's turn that the player can get to
+        # (as a set, not necessarily any particular word) regardless of other
+        # players' choices
+        certain_win_words: set[str]
 
-    # TODO: Refactor
+        # Words that occur on the player's turn that depend on other players' choices
+        possible_win_words: set[str]
+
+        # Words that do not occur on the player's turn
+        losing_words: set[str]
+
+        # The next letter choices that lead, with perfect play, to a win
+        certain_win_letters: list[str] = field(default_factory=lambda: set())
+
+        # The next letter choices that lead, depending on other players' choices, to a win
+        possible_win_letters: list[str] = field(default_factory=lambda: set())
+
+        # The next letter choices that lead only to losses
+        losing_letters: list[str] = field(default_factory=lambda: set())
+
+    def _solve_recursive(
+        self,
+        original_prefix: str,
+        current_prefix: str,
+        current_prefix_node: TrieNode,
+        num_players: int,
+        min_word_length: int,
+    ) -> tuple[
+        set[str], set[str], set[str]
+    ]:  # Certain wins, possible wins, unavoidable losses
+        """
+        Recurse through the lexicon Trie, accumulating words that are certain wins,
+        possible wins, and (unavoidable) losses.
+        :param original_prefix: the prefix from which we started the solve procedure
+        :param current_prefix: the prefix for which we are currently solving
+        :param current_prefix_node: the node corresponding to current_prefix in our Trie
+        :param num_players: the number of players in the game
+        :param min_word_length: the minimum number of characters in a final word
+        """
+        # turn is an integer representing whose turn it is
+        turn = (len(current_prefix) - len(original_prefix)) % num_players
+        was_just_players_turn = turn == 1  # If the player made the last choice
+        if current_prefix_node.is_leaf and len(current_prefix) >= min_word_length:
+            if (
+                was_just_players_turn
+            ):  # The final word happened on the current player's turn
+                return (set([current_prefix]), set(), set())
+            else:  # The final word happened on another player's turn
+                return (set(), set(), set([current_prefix]))
+
+        certain_wins = set()
+        possible_wins = set()
+        unavoidable_losses = set()
+
+        # We will recurse through the Trie, updating certain_wins, possible_wins,
+        # and losses
+        for letter in current_prefix_node.children:
+            wins, possibles, losses = self._solve_recursive(
+                original_prefix,
+                current_prefix + letter,
+                current_prefix_node.children[letter],
+                num_players,
+                min_word_length,
+            )
+            certain_wins = certain_wins.union(wins)
+            possible_wins = possible_wins.union(possibles)
+            unavoidable_losses = unavoidable_losses.union(losses)
+        is_players_turn = turn == 0  # If the player is making the current choice
+        if is_players_turn:
+            # If it's the current player's turn and they have a path to a guaranteed
+            # win, then they can avoid all losses
+            if certain_wins:
+                unavoidable_losses = set()
+        else:
+            # If it's not the current player's turn and there are ways for the current
+            # player to lose, then the current player cannot be guaranteed to avod
+            # those losses. Thus, at best, the wins they have available are only possible
+            # wins, not certain.
+            if unavoidable_losses:
+                possible_wins = possible_wins.union(certain_wins)
+                certain_wins = set()
+        return (certain_wins, possible_wins, unavoidable_losses)
+
     def solve(
-        self, prefix: str, num_players: int, min_word_length: int = 4
+        self,
+        prefix: str,
+        num_players: int,
+        min_word_length: int = DEFAULT_MINIMUM_WORD_LENGTH,
     ) -> WordTrainSolution:
         """
-        Given the current prefix, solve returns a WordTrainSolution instance with
-        (possibly empty) lists of letters certain_wins and possible_wins.
-        certain_wins are letters that, should the player play perfectly,
-        guarantee a win. possible_wins are letters that can lead to a win, but which
-        depend on other players' choices.
-
-        Example based on ./lexicons/english.txt:
-        solve('appl', 2, 4):
-        --> certain_wins ["e", "y", "a"] because "apple" and "apply"
-        are automatic wins, and the only "appla" words are "applause" and "applausive...",
-        each of which is a winning word for the current player.
-        --> possible_wins ["i", "o"] because (e.g.) "application" and "applosion"
-        would be winning words, but it depends on the other player not choosing letters
-        that would lead to the losing words "appicable" or "applot."
+        "Solve" Word Train. Returns a WordTrainSolution instance.
+        :param prefix: the prefix to solve from
+        :param num_players: the number of players in the game
+        :min_word_length: the minimum number of letters a final word must be
         """
-
-        all_words = self.lexicon.trie.get_all_words(prefix)
-        # We store all of the words based on the current prefix that represents wins for us.
-        # We also store all of the words based on the current prefix that represent losses for us.
-        # We use dicts with the key the next letter and the value a set of options.
-        winning_words: set[str] = set()
-        possible_winning_letters: set[str] = set()
-        losing_words: dict[str, set] = dict()
-        for word in all_words:
-            if len(word) < min_word_length:
-                continue
-            next_letter_option = (
-                word[len(prefix)] if len(prefix) < len(word) else word[0]
-            )
-            if (
-                len(word) - len(prefix)
-            ) % num_players == 1:  # This word happens on the current player's turn
-                winning_words.add(word)
-                possible_winning_letters.add(next_letter_option)
-            else:
-                losing_words[next_letter_option] = losing_words.get(
-                    next_letter_option, set()
-                )
-                losing_words[next_letter_option].add(word)
-        # We create lexicons so we can use tries for more efficient lookups
-        winning_words_lexicon = LanguageLexicon(winning_words or [])
-        losing_words_lexicon = LanguageLexicon(
-            itertools.chain.from_iterable(losing_words.values()) or []
+        # First, recurse over the lexicon Trie, starting at prefix, to get
+        # the wins, and possible that can occur with perfect play.
+        # We ignore losses because we will re-calculate losses to include all
+        # losing words, not just losses that would only occur with perfect play.
+        certain_win_words, possible_win_words, _ = self._solve_recursive(
+            prefix,
+            prefix,
+            self.lexicon.trie.get_prefix_node(prefix),
+            num_players,
+            min_word_length,
         )
-        # We start our search for solutions by looking at all of the next letters
-        # that can lead to a winning word (note that there is no guarantee that we can
-        # get to this word, e.g., plant will come before plants even if plants is
-        # "winning" word for us).
-        certain_wins, possible_wins = set(), set()
-        for next_letter_option in possible_winning_letters:
-            next_letter_prefix = prefix + next_letter_option
-            # If the new prefix is a winning word, we are done.
-            if next_letter_prefix in winning_words:
-                certain_wins.add(next_letter_option)
-            # If the new prefix isn't a prefix of any losing word,
-            # then we are guaranteed to reach a winning word, and we are done.
-            elif not losing_words_lexicon.trie.get_prefix_node(next_letter_prefix):
-                certain_wins.add(next_letter_option)
-            else:
-                # Now things get more complex
-                # Tentatively add the solution. (TODO: There is almost certainly a better way.)
-                certain_wins.add(next_letter_option)
-                # Get all of the losing words that start with the new prefix
-                possible_losing_words = losing_words[next_letter_option]
-                # For every possible losing word, we will check if there is a winning word
-                # that the current player can get to first. If not, then the next letter option
-                # we are considering is invalid: even if the player plays perfectly, they
-                # might end up at a losing word.
-                for losing_word in possible_losing_words:
-                    # Get the prefix for the word given the number of players.
-                    losing_prefix = losing_word[
-                        : len(next_letter_prefix) + num_players - 1
-                    ]
-                    # We need to check if we can find a winning word that
-                    # comes before the losing word.
-                    # Otherwise, there is a route to a non-winning word regardless
-                    # of perfect play.
-                    if not any(
-                        len(word) < len(losing_word)
-                        for word in winning_words_lexicon.trie.get_all_words(
-                            losing_prefix
-                        )
-                    ):
-                        certain_wins.remove(next_letter_option)
-                        break
-        # TODO: Make this more efficient
-        possible_wins = (
-            set(
-                [
-                    word[len(prefix)]
-                    for word in winning_words
-                    if all(
-                        not word.startswith(w)
-                        for w in losing_words.get(word[len(prefix)], set())
-                    )
-                ]
+        # Recalculate losing words to include all losing words, not just
+        # unavoidable losses.
+        losing_words = {
+            word
+            for word in self.lexicon.trie.get_all_words(
+                prefix, stop_at_leaf=True, min_length=min_word_length
             )
-            - certain_wins
-        )
-
+            if (len(word) - len(prefix)) % num_players != 1
+        }
+        # Get the next letter options that lead to wins, possible wins, and unavoidable losses.
+        win_letters = {word[len(prefix)] for word in certain_win_words}
+        possible_win_letters = {
+            word[len(prefix)] for word in possible_win_words
+        } - win_letters
+        losing_letters = {
+            letter
+            for letter in self.lexicon.characters
+            if letter not in win_letters and letter not in possible_win_letters
+        }
         return WordTrainSolver.WordTrainSolution(
-            prefix, list(sorted(certain_wins)), list(sorted(possible_wins))
+            certain_win_words,
+            possible_win_words,
+            losing_words,
+            list(sorted(win_letters)),
+            list(sorted(possible_win_letters)),
+            list(sorted(losing_letters)),
         )
 
 

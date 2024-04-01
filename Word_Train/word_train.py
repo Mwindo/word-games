@@ -10,7 +10,7 @@ MINIMUM_WORD_LENGTH = 4
 def start_game(lexicon_file_path: str, player_goes_first: bool):
     print("\nLoading lexicon ... ")
     lexicon = LanguageLexicon(lexicon_file_path)
-    allowed_letters = lexicon.characters  # Calculate this here
+    allowed_letters = lexicon.characters  # Calculate this here to avoid loading later
     print("\n==Word Train==")
     game_loop(lexicon, WordTrainSolver(lexicon), allowed_letters, player_goes_first)
 
@@ -25,6 +25,7 @@ def game_loop(
     Loop until the game ends, alternating between prompting the user
     for the next letter and letting the computer choose the next letter.
     """
+    # TODO: We can maybe make this more efficient by not re-solving every time?
     players_turn = player_goes_first
     word = ""
     node = lexicon.trie.root
@@ -48,10 +49,10 @@ def game_loop(
         # Very basic logic: we choose letters that work,
         # but we avoid certain wins when possible to give
         # the player a chance to win
-        if solution.possible_wins:
-            letter = random.choice(solution.possible_wins)
-        elif solution.certain_wins:
-            letter = random.choice(solution.certain_wins)
+        if solution.possible_win_words:
+            letter = random.choice(solution.possible_win_letters)
+        elif solution.certain_win_words:
+            letter = random.choice(solution.certain_win_letters)
         else:
             letter = random.choice(list(node.children.keys()))
         return letter
