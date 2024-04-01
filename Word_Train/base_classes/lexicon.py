@@ -140,6 +140,10 @@ class LanguageLexicon:
 
 
 class LexiconIndex(abc.ABC):
+    '''
+    An abstract class representing some "index" or
+    calculated property of a lexicon.
+    '''
 
     def __init__(self, lexicon: LanguageLexicon) -> None:
         self.lexicon = lexicon
