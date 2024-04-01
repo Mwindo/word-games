@@ -78,16 +78,16 @@ class WordTrainSolver:
         # We will recurse through the Trie, updating certain_wins, possible_wins,
         # and losses
         for letter in current_prefix_node.children:
-            wins, possibles, losses = self._solve_recursive(
+            new_certain_wins, new_possible_wins, new_losses = self._solve_recursive(
                 original_prefix,
                 current_prefix + letter,
                 current_prefix_node.children[letter],
                 num_players,
                 min_word_length,
             )
-            certain_wins = certain_wins.union(wins)
-            possible_wins = possible_wins.union(possibles)
-            unavoidable_losses = unavoidable_losses.union(losses)
+            certain_wins = certain_wins.union(new_certain_wins)
+            possible_wins = possible_wins.union(new_possible_wins)
+            unavoidable_losses = unavoidable_losses.union(new_losses)
         is_players_turn = turn == 0  # If the player is making the current choice
         if is_players_turn:
             # If it's the current player's turn and they have a path to a guaranteed
@@ -96,7 +96,7 @@ class WordTrainSolver:
                 unavoidable_losses = set()
         else:
             # If it's not the current player's turn and there are ways for the current
-            # player to lose, then the current player cannot be guaranteed to avod
+            # player to lose, then the current player cannot be guaranteed to avoid
             # those losses. Thus, at best, the wins they have available are only possible
             # wins, not certain.
             if unavoidable_losses:
@@ -120,10 +120,13 @@ class WordTrainSolver:
         # the wins, and possible that can occur with perfect play.
         # We ignore losses because we will re-calculate losses to include all
         # losing words, not just losses that would only occur with perfect play.
+        prefix_node = self.lexicon.trie.get_prefix_node(prefix)
+        if not prefix_node:
+            raise Exception(f"Prefix {prefix} doex not occur in the lexicon!")
         certain_win_words, possible_win_words, _ = self._solve_recursive(
             prefix,
             prefix,
-            self.lexicon.trie.get_prefix_node(prefix),
+            prefix_node,
             num_players,
             min_word_length,
         )
@@ -168,6 +171,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-n",
         "--num_players",
+        type=int,
         required=False,
         help="The number of players in the game",
         default=2,
@@ -175,9 +179,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "-m",
         "--min_word_length",
+        type=int,
         required=False,
         help="The minimum word length for a winning word",
-        default=4,
+        default=DEFAULT_MINIMUM_WORD_LENGTH,
     )
     args = parser.parse_args()
     print("\nLoading lexicon ... ")
@@ -185,6 +190,6 @@ if __name__ == "__main__":
     print("\nSolving ...")
     print(
         WordTrainSolver(lexicon).solve(
-            args.word, int(args.num_players), int(args.min_word_length)
+            args.word, args.num_players, args.min_word_length
         )
     )
