@@ -20,6 +20,6 @@ Examples:
 
 ## TODO
 
-* Return not only the next-letter options, but also the words you can reach for them.
-* ~~For possible wins, return the probabilities (assuming other players make random choices).~~
+* ~~Return not only the next-letter options, but also the words you can reach for them.~~
+* For possible wins, return the probabilities (assuming other players make random choices).
 * Train word train NN models on ./lexicons/english.txt, perhaps for multiple difficulty levels (and maybe using a fuzzy objective function to incentivize "mistakes" for easier-to-win-against models)
