@@ -41,7 +41,7 @@ class WordTrainSolver:
         # The next letter choices that lead only to losses
         losing_letters: list[str] = field(default_factory=lambda: set())
 
-    def _solve_recursive(
+    def _solve_recursively(
         self,
         original_prefix: str,
         current_prefix: str,
@@ -54,11 +54,14 @@ class WordTrainSolver:
         """
         Recurse through the lexicon Trie, accumulating words that are certain wins,
         possible wins, and (unavoidable) losses.
+
         :param original_prefix: the prefix from which we started the solve procedure
         :param current_prefix: the prefix for which we are currently solving
         :param current_prefix_node: the node corresponding to current_prefix in our Trie
         :param num_players: the number of players in the game
         :param min_word_length: the minimum number of characters in a final word
+        :return: a tuple of sets corresponding to certain wins, possible wins, and
+        (unavoidable) losses.
         """
         # turn is an integer representing whose turn it is
         turn = (len(current_prefix) - len(original_prefix)) % num_players
@@ -78,7 +81,7 @@ class WordTrainSolver:
         # We will recurse through the Trie, updating certain_wins, possible_wins,
         # and losses
         for letter in current_prefix_node.children:
-            new_certain_wins, new_possible_wins, new_losses = self._solve_recursive(
+            new_certain_wins, new_possible_wins, new_losses = self._solve_recursively(
                 original_prefix,
                 current_prefix + letter,
                 current_prefix_node.children[letter],
@@ -112,9 +115,11 @@ class WordTrainSolver:
     ) -> WordTrainSolution:
         """
         "Solve" Word Train. Returns a WordTrainSolution instance.
+
         :param prefix: the prefix to solve from
         :param num_players: the number of players in the game
         :min_word_length: the minimum number of letters a final word must be
+        :returns: an instance of 'WordTrainSolution'
         """
         # First, recurse over the lexicon Trie, starting at prefix, to get
         # the wins, and possible that can occur with perfect play.
@@ -123,7 +128,7 @@ class WordTrainSolver:
         prefix_node = self.lexicon.trie.get_prefix_node(prefix)
         if not prefix_node:
             raise Exception(f"Prefix {prefix} doex not occur in the lexicon!")
-        certain_win_words, possible_win_words, _ = self._solve_recursive(
+        certain_win_words, possible_win_words, _ = self._solve_recursively(
             prefix,
             prefix,
             prefix_node,
