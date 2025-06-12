@@ -41,10 +41,14 @@ def game_loop(
         return letter
 
     def get_computer_letter(word: str) -> str:
+
+        def get_valid_initial_letters() -> list[str]:
+            return [key for key in node.children if node.children[key].children]
+
         print("\nChoosing a letter ...")
         if not word:
             # Choose randomly at the beginning
-            return random.choice(list(allowable_letters))
+            return random.choice(get_valid_initial_letters())
         solution = solver.solve(word, 2)
         # Very basic logic: we choose letters that work,
         # but we avoid certain wins when possible to give
@@ -76,11 +80,14 @@ def game_loop(
         else:
             print("\nI got there first! I win!")
 
+    def letter_is_valid(letter: str) -> bool:
+        return node.is_leaf or node.children
+
     # Loop until we reach the end of the word or until we reach an invalid string
     while True:
         letter = get_letter(word)
         node = node.children.get(letter)  # Iterate through the prefix tree
-        if not node or (not node.is_leaf and not node.children):
+        if not node or not letter_is_valid(letter):
             # The letter that was received does not work
             handle_invalid_letter(word, letter)
             break
